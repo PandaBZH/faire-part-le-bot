@@ -1,0 +1,659 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Faire-part Erwann & Soline LE BOT</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        body {
+            min-height: 100vh;
+            background: linear-gradient(135deg, #f5e6d3 0%, #e8d5c4 50%, #d4b8a0 100%);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-family: 'Georgia', serif;
+            overflow: hidden;
+        }
+
+        .scene {
+            position: relative;
+            width: 380px;
+            height: 260px;
+        }
+
+        .envelope-wrapper {
+            position: absolute;
+            width: 380px;
+            height: 260px;
+            top: 0; left: 0;
+            z-index: 10;
+            cursor: pointer;
+            -webkit-tap-highlight-color: transparent;
+            -webkit-user-select: none;
+            user-select: none;
+            -webkit-touch-callout: none;
+        }
+
+        .envelope-wrapper.opened {
+            z-index: 1;
+            pointer-events: none;
+        }
+
+        /* Empêche iOS de traiter les éléments enfants comme des images cliquables */
+        .envelope-wrapper * {
+            -webkit-user-select: none;
+            user-select: none;
+            -webkit-touch-callout: none;
+            pointer-events: none;
+        }
+
+        .envelope { position: relative; width: 100%; height: 100%; }
+
+        .envelope-body {
+            position: absolute;
+            width: 100%; height: 100%;
+            background: linear-gradient(160deg, #f0e0c8 0%, #e8d0b0 60%, #dfc09a 100%);
+            border-radius: 4px;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.3), 0 2px 8px rgba(0,0,0,0.2), inset 0 1px 0 rgba(255,255,255,0.4);
+        }
+
+        .envelope-bottom {
+            position: absolute; bottom: 0; left: 0;
+            width: 0; height: 0;
+            border-style: solid;
+            border-width: 0 190px 130px 190px;
+            border-color: transparent transparent #e0c8a8 transparent;
+            z-index: 2;
+        }
+
+        .envelope-left {
+            position: absolute; top: 0; left: 0;
+            width: 0; height: 0;
+            border-style: solid;
+            border-width: 130px 0 130px 190px;
+            border-color: transparent transparent transparent #d8c09a;
+            z-index: 2;
+        }
+
+        .envelope-right {
+            position: absolute; top: 0; right: 0;
+            width: 0; height: 0;
+            border-style: solid;
+            border-width: 130px 190px 130px 0;
+            border-color: transparent #d8c09a transparent transparent;
+            z-index: 2;
+        }
+
+        .envelope-inner-border {
+            position: absolute; top: 0; left: 0;
+            width: 100%; height: 100%;
+            border-radius: 4px;
+            box-shadow: inset 0 0 0 12px rgba(180,140,100,0.15);
+            z-index: 3;
+        }
+
+        .envelope-flap-wrapper {
+            position: absolute; top: 0; left: 0;
+            width: 380px; height: 145px;
+            transform-origin: top center;
+            transform-style: preserve-3d;
+            transition: transform 0.8s cubic-bezier(0.4, 0, 0.2, 1);
+            z-index: 4;
+            backface-visibility: hidden;
+            visibility: hidden;
+        }
+
+        .envelope-wrapper.opened .envelope-flap-wrapper {
+            visibility: visible;
+            transform: rotateX(-180deg);
+        }
+
+        .envelope-flap {
+            position: absolute; top: 0; left: 0;
+            width: 0; height: 0;
+            border-style: solid;
+            border-width: 0 190px 145px 190px;
+            border-color: transparent transparent #e8d4b8 transparent;
+            backface-visibility: hidden;
+        }
+
+        .envelope-flap-back {
+            position: absolute; top: 0; left: 0;
+            width: 0; height: 0;
+            border-style: solid;
+            border-width: 0 190px 145px 190px;
+            border-color: transparent transparent #ddc8a8 transparent;
+            backface-visibility: hidden;
+            transform: rotateX(180deg);
+        }
+
+        .wax-seal {
+            position: absolute; top: 50%; left: 50%;
+            transform: translate(-50%, -50%);
+            z-index: 25;
+            transition: transform 0.3s ease, opacity 0.3s ease;
+        }
+
+        .envelope-wrapper.opened .wax-seal {
+            opacity: 0;
+            transform: translate(-50%, -50%) scale(0);
+        }
+
+        .wax-seal-circle {
+            width: 54px; height: 54px;
+            background: radial-gradient(circle at 35% 35%, #c0392b, #8B0000);
+            border-radius: 50%;
+            display: flex; align-items: center; justify-content: center;
+            color: #f5e6d3;
+            font-size: 22px;
+            font-family: 'Georgia', serif;
+            font-style: italic; font-weight: bold;
+            box-shadow: 0 3px 10px rgba(0,0,0,0.4), 0 1px 3px rgba(0,0,0,0.3), inset 0 1px 0 rgba(255,255,255,0.2);
+            border: 2px solid rgba(139,0,0,0.6);
+            position: relative;
+        }
+
+        .wax-seal-circle::before {
+            content: '';
+            position: absolute;
+            width: 62px; height: 62px;
+            border-radius: 50%;
+            border: 2px dashed rgba(139,0,0,0.4);
+            top: -6px; left: -6px;
+        }
+
+        .instruction {
+            position: absolute;
+            bottom: -36px; left: 50%;
+            transform: translateX(-50%);
+            color: #8B6914;
+            font-size: 13px; font-style: italic;
+            white-space: nowrap;
+            opacity: 0.8;
+            transition: opacity 0.3s ease;
+        }
+
+        .instruction.hidden { opacity: 0; pointer-events: none; }
+
+        /* ============ FAIRE-PART ============ */
+        .card-overlay {
+            position: fixed; inset: 0; z-index: 100;
+            display: flex; align-items: center; justify-content: center;
+            background: rgba(0,0,0,0);
+            pointer-events: none;
+            transition: background 0.5s ease;
+        }
+
+        .card-overlay.revealed {
+            background: rgba(0,0,0,0.45);
+            pointer-events: all;
+        }
+
+        .card-scene {
+            perspective: 1200px;
+            width: 360px; height: 520px;
+            opacity: 0;
+            transform: translateY(60px) scale(0.85);
+            transition: opacity 0.6s ease, transform 0.6s ease;
+        }
+
+        .card-overlay.revealed .card-scene {
+            opacity: 1;
+            transform: translateY(0) scale(1);
+        }
+
+        .card {
+            position: relative;
+            width: 100%; height: 100%;
+            transform-style: preserve-3d;
+            transition: transform 0.8s cubic-bezier(0.4, 0, 0.2, 1);
+            cursor: pointer;
+            -webkit-tap-highlight-color: transparent;
+            -webkit-touch-callout: none;
+        }
+
+        .card.flipped { transform: rotateY(180deg); }
+
+        .card-face {
+            position: absolute; inset: 0;
+            border-radius: 16px;
+            backface-visibility: hidden;
+            -webkit-backface-visibility: hidden;
+            overflow: hidden;
+            box-shadow: 0 25px 60px rgba(0,0,0,0.35);
+        }
+
+        /* ---- RECTO ---- */
+        .card-front {
+            background: #ffffff;
+            display: flex; flex-direction: column;
+            align-items: center; justify-content: space-between;
+            padding: 24px 24px 24px;
+            text-align: center;
+            height: 100%;
+        }
+
+        .bikes-container {
+            width: 100%; height: 140px;
+            position: relative;
+            overflow: visible;
+            margin-top: 20px;
+        }
+
+        .bikes-track {
+            position: relative;
+            width: 100%; height: 100%;
+        }
+
+        .bike-img {
+            height: 90%;
+            object-fit: contain;
+            filter: drop-shadow(0 2px 4px rgba(0,0,0,0.08));
+            position: absolute;
+            top: 20%;
+            transform: translateY(-50%);
+            pointer-events: none;
+            -webkit-user-select: none;
+            user-select: none;
+            -webkit-touch-callout: none;
+        }
+
+        @keyframes slideInRightMama {
+            from { transform: translateX(-400px) translateY(-50%); opacity: 0; }
+            to   { transform: translateX(40px) translateY(-50%);   opacity: 1; }
+        }
+
+        @keyframes slideInRightPapa {
+            from { transform: translateX(-400px) translateY(-50%); opacity: 0; }
+            to   { transform: translateX(-60px) translateY(-50%);  opacity: 1; }
+        }
+
+        @keyframes slideInRightChild {
+            from { transform: translateX(-400px) translateY(-50%); opacity: 0; }
+            to   { transform: translateX(-130px) translateY(-50%); opacity: 1; }
+        }
+
+        .bike-mama-return {
+            display: none; opacity: 0;
+            left: 160px; max-width: 110px;
+        }
+
+        .bike-papa-return {
+            display: none; opacity: 0;
+            left: 60px; max-width: 120px;
+        }
+
+        .bike-child-return {
+            display: none; opacity: 0;
+            left: 250px; max-width: 75px;
+        }
+
+        @keyframes fadeInElement {
+            from { opacity: 0; transform: translateY(10px); }
+            to   { opacity: 1; transform: translateY(0); }
+        }
+
+        .card-tagline {
+            font-size: 13px; color: #555;
+            font-style: italic; letter-spacing: 0.5px;
+            opacity: 0;
+            animation: fadeInElement 0.8s ease forwards;
+            animation-delay: 1s;
+            margin-top: 10px;
+            margin-bottom: 20px;
+        }
+
+        .card-stats {
+            display: flex; align-items: center; gap: 16px;
+            font-size: 14px; color: #333;
+            opacity: 0;
+            animation: fadeInElement 0.8s ease forwards;
+            animation-delay: 6s;
+            margin-bottom: auto;
+        }
+
+        .card-stats .divider { color: #ccc; font-size: 18px; }
+        .stat-icon { font-size: 20px; }
+        .stat-block { display: flex; flex-direction: column; align-items: center; gap: 2px; }
+        .stat-label { font-size: 13px; color: #666; }
+
+        .card-naissance {
+            font-size: 12px; color: #444;
+            letter-spacing: 0.3px;
+            opacity: 0;
+            animation: fadeInElement 0.8s ease forwards;
+            animation-delay: 3s;
+            margin: 20px;
+        }
+
+        .card-text {
+            font-size: 12px; color: #444;
+            letter-spacing: 0.3px;
+            opacity: 0;
+            animation: fadeInElement 0.8s ease forwards;
+            animation-delay: 11s;
+            margin: 5px;
+        }
+
+        .card-prenom {
+            font-size: 52px; color: #2a2a2a;
+            font-style: italic; line-height: 1;
+            opacity: 0;
+            animation: fadeInElement 0.8s ease forwards;
+            animation-delay: 13s;
+            margin-top: 20px;
+            margin-bottom: 30px;
+        }
+
+        .card-separator {
+            width: 1px; height: 24px;
+            background: #ddd; margin: 0 auto;
+            opacity: 0;
+            animation: fadeInElement 0.8s ease forwards;
+            animation-delay: 4s;
+        }
+
+        .flip-hint-front {
+            font-size: 11px; color: #bbb; font-style: italic;
+            opacity: 0;
+            animation: fadeInElement 0.8s ease forwards;
+            animation-delay: 13s;
+            padding-bottom: 12px;
+        }
+
+        /* ---- VERSO ---- */
+        .card-back {
+            background: linear-gradient(160deg, #3d2b1f 0%, #2a1a10 100%);
+            transform: rotateY(180deg);
+            -webkit-transform: rotateY(180deg);
+            display: flex; flex-direction: column;
+            align-items: center; justify-content: center;
+            padding: 40px 30px;
+            text-align: center; gap: 18px;
+        }
+
+        .card-back::before {
+            content: '';
+            position: absolute; inset: 12px;
+            border: 1px solid rgba(180,140,80,0.2);
+            border-radius: 10px;
+            pointer-events: none;
+        }
+
+        .card-quote { font-size: 15px; color: #f5e6d3; font-style: italic; line-height: 1.8; opacity: 0.9; }
+        .card-quote-author { font-size: 11px; color: #b8905a; letter-spacing: 2px; text-transform: uppercase; }
+
+        .card-separator-light {
+            width: 60px; height: 1px;
+            background: linear-gradient(to right, transparent, #b8905a, transparent);
+        }
+
+        .card-btn {
+            display: block; width: 100%;
+            padding: 13px 20px;
+            background: transparent;
+            border: 1px solid rgba(184,144,90,0.5);
+            border-radius: 8px;
+            color: #f5e6d3;
+            font-family: 'Georgia', serif; font-size: 11px;
+            letter-spacing: 2px; text-transform: uppercase;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-decoration: none; text-align: center;
+        }
+
+        .card-btn:hover { background: rgba(184,144,90,0.2); border-color: #b8905a; }
+        .flip-hint { font-size: 11px; color: rgba(184,144,90,0.6); letter-spacing: 1px; font-style: italic; }
+
+        /* ============ BOUTON FERMER ============ */
+        .close-btn {
+            position: fixed; top: 20px; right: 20px; z-index: 200;
+            width: 40px; height: 40px;
+            background: rgba(255,255,255,0.15);
+            border: 1px solid rgba(255,255,255,0.3);
+            border-radius: 50%;
+            color: white; font-size: 20px; cursor: pointer;
+            display: flex; align-items: center; justify-content: center;
+            opacity: 0; pointer-events: none;
+            transition: opacity 0.3s ease, background 0.3s ease;
+            backdrop-filter: blur(4px);
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        .close-btn.visible { opacity: 1; pointer-events: all; }
+        .close-btn:hover { background: rgba(255,255,255,0.25); }
+    </style>
+</head>
+<body>
+
+<!-- ENVELOPPE -->
+<div class="scene">
+    <div class="envelope-wrapper" id="envelopeWrapper">
+        <div class="envelope">
+            <div class="envelope-body"></div>
+            <div class="envelope-bottom"></div>
+            <div class="envelope-left"></div>
+            <div class="envelope-right"></div>
+            <div class="envelope-inner-border"></div>
+            <div class="envelope-flap-wrapper">
+                <div class="envelope-flap"></div>
+                <div class="envelope-flap-back"></div>
+            </div>
+            <div class="wax-seal">
+                <div class="wax-seal-circle">L</div>
+            </div>
+        </div>
+    </div>
+    <div class="instruction" id="instruction">Cliquez sur l'enveloppe pour l'ouvrir</div>
+</div>
+
+<!-- FAIRE-PART -->
+<div class="card-overlay" id="cardOverlay">
+    <div class="card-scene">
+        <div class="card" id="card">
+
+            <!-- RECTO -->
+            <div class="card-face card-front">
+                <div class="card-tagline">Le début d'une nouvelle aventure</div>
+
+                <div class="bikes-container">
+                    <div class="bikes-track">
+                        <img src="https://i.ibb.co/DfPMXXGn/v-lo1-return.png" alt="Maman" class="bike-img bike-mama-return" id="bikeMamaReturn">
+                        <img src="https://i.ibb.co/DH0Qr8rC/v-lo2-return.png" alt="Papa"  class="bike-img bike-papa-return"  id="bikePapaReturn">
+                        <img src="https://i.ibb.co/vC3Rs8KC/v-lo3-removebg-preview.png" alt="Enfant" class="bike-img bike-child-return" id="bikeChildReturn">
+                    </div>
+                </div>
+
+                <div class="card-naissance">à commencé le <strong>13 juillet 2026</strong> à <strong>7h42</strong></div>
+                <div class="card-text">avec l'arrivée de notre petit</div>
+
+                <div class="card-prenom">Henri</div>
+
+                <div class="card-stats">
+                    <div class="stat-block">
+                        <div class="stat-icon">📏</div>
+                        <div class="stat-label">51 cm</div>
+                    </div>
+                    <div class="divider">|</div>
+                    <div class="stat-block">
+                        <div class="stat-icon">⚖️</div>
+                        <div class="stat-label">3,4 kg</div>
+                    </div>
+                </div>
+
+                <div class="card-tagline">Erwann & Soline</div>
+
+                <div class="flip-hint-front">Cliquez pour retourner la carte</div>
+            </div>
+
+            <!-- VERSO -->
+            <div class="card-face card-back">
+                <div class="card-quote">
+                    « Soline a été horrible avec <br>
+                    moi pendant l'accouchement !<br>
+                    Venez m'aider ! »
+                </div>
+                <div class="card-quote-author">— Le papa</div>
+                <div class="card-separator-light"></div>
+                <a href="https://docs.google.com/forms/d/e/1FAIpQLSeop-G-LmZlAE-TPkpSYYy0IdiliJNz6jJeunALgJKpF2KjTg/viewform?usp=dialog" class="card-btn">✉ Je souhaite recevoir mon faire-part papier</a>
+                <a href="https://www.minipouce.fr/solinele-bot" class="card-btn">🎁 Accéder à la liste de naissance</a>
+                <div class="flip-hint">Cliquez sur la carte pour la retourner</div>
+            </div>
+
+        </div>
+    </div>
+</div>
+
+<button class="close-btn" id="closeBtn">✕</button>
+
+<script>
+    const envelopeWrapper = document.getElementById('envelopeWrapper');
+    const cardOverlay     = document.getElementById('cardOverlay');
+    const card            = document.getElementById('card');
+    const instruction     = document.getElementById('instruction');
+    const closeBtn        = document.getElementById('closeBtn');
+
+    let isOpened = false;
+    let animationTimers = [];
+
+    /* ─── Ouvrir ─── */
+    function openEnvelope() {
+        if (isOpened) return;
+        isOpened = true;
+
+        envelopeWrapper.classList.add('opened');
+        instruction.classList.add('hidden');
+
+        setTimeout(() => {
+            cardOverlay.classList.add('revealed');
+            closeBtn.classList.add('visible');
+            restartAnimations();
+        }, 900);
+    }
+
+    /* Gestion tactile manuelle pour éviter le double déclenchement iOS */
+    let envTouchMoved = false;
+    envelopeWrapper.addEventListener('touchstart', (e) => {
+        envTouchMoved = false;
+    }, { passive: true });
+
+    envelopeWrapper.addEventListener('touchmove', () => {
+        envTouchMoved = true;
+    }, { passive: true });
+
+    envelopeWrapper.addEventListener('touchend', (e) => {
+        if (!envTouchMoved) {
+            e.preventDefault(); // empêche le click fantôme qui suivrait
+            openEnvelope();
+        }
+    }, { passive: false });
+
+    envelopeWrapper.addEventListener('click', openEnvelope);
+
+    /* ─── Fermer ─── */
+    function closeEnvelope() {
+        animationTimers.forEach(t => clearTimeout(t));
+        animationTimers = [];
+
+        cardOverlay.classList.remove('revealed');
+        closeBtn.classList.remove('visible');
+        card.classList.remove('flipped');
+
+        resetVelos();
+        resetTextes();
+
+        setTimeout(() => {
+            envelopeWrapper.classList.remove('opened');
+            instruction.classList.remove('hidden');
+            isOpened = false;
+        }, 500);
+    }
+
+    let closeTouchMoved = false;
+    closeBtn.addEventListener('touchstart', () => { closeTouchMoved = false; }, { passive: true });
+    closeBtn.addEventListener('touchmove',  () => { closeTouchMoved = true;  }, { passive: true });
+    closeBtn.addEventListener('touchend', (e) => {
+        if (!closeTouchMoved) {
+            e.preventDefault();
+            closeEnvelope();
+        }
+    }, { passive: false });
+    closeBtn.addEventListener('click', closeEnvelope);
+
+    /* ─── Flip carte ─── */
+    let cardTouchMoved = false;
+    let touchStartX = 0, touchStartY = 0;
+
+    card.addEventListener('touchstart', (e) => {
+        cardTouchMoved = false;
+        touchStartX = e.touches[0].clientX;
+        touchStartY = e.touches[0].clientY;
+    }, { passive: true });
+
+    card.addEventListener('touchmove', () => {
+        cardTouchMoved = true;
+    }, { passive: true });
+
+    card.addEventListener('touchend', (e) => {
+        if (!cardTouchMoved) {
+            e.preventDefault();
+            card.classList.toggle('flipped');
+        }
+    }, { passive: false });
+
+    card.addEventListener('click', () => {
+        card.classList.toggle('flipped');
+    });
+
+    /* ─── Reset vélos ─── */
+    function resetVelos() {
+        ['bikeMamaReturn', 'bikePapaReturn', 'bikeChildReturn'].forEach(id => {
+            const el = document.getElementById(id);
+            el.style.animation = 'none';
+            el.style.display   = 'none';
+            el.style.opacity   = '0';
+        });
+    }
+
+    /* ─── Reset textes ─── */
+    function resetTextes() {
+        const allAnimated = document.querySelectorAll(
+            '.card-tagline, .card-stats, .card-naissance, .card-text, .card-prenom, .card-separator, .flip-hint-front'
+        );
+        allAnimated.forEach(el => {
+            el.style.animation = 'none';
+            el.offsetHeight;
+            el.style.animation = '';
+        });
+    }
+
+    /* ─── Relancer toutes les animations ─── */
+    function restartAnimations() {
+        resetVelos();
+        resetTextes();
+
+        const mama  = document.getElementById('bikeMamaReturn');
+        const papa  = document.getElementById('bikePapaReturn');
+        const child = document.getElementById('bikeChildReturn');
+
+        [mama, papa, child].forEach(el => el.offsetHeight);
+
+        mama.style.display   = 'block';
+        mama.style.animation = 'slideInRightMama 2s ease-out forwards';
+
+        animationTimers.push(setTimeout(() => {
+            papa.style.display   = 'block';
+            papa.style.animation = 'slideInRightPapa 2s ease-out forwards';
+        }, 300));
+
+        animationTimers.push(setTimeout(() => {
+            child.style.display   = 'block';
+            child.style.animation = 'slideInRightChild 2s ease-out forwards';
+        }, 8000));
+    }
+</script>
+
+</body>
+</html>
