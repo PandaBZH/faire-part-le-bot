@@ -41,7 +41,6 @@
             pointer-events: none;
         }
 
-        /* Empêche iOS de traiter les éléments enfants comme des images cliquables */
         .envelope-wrapper * {
             -webkit-user-select: none;
             user-select: none;
@@ -402,6 +401,8 @@
             cursor: pointer;
             transition: all 0.3s ease;
             text-decoration: none; text-align: center;
+            pointer-events: all;
+            -webkit-tap-highlight-color: transparent;
         }
 
         .card-btn:hover { background: rgba(184,144,90,0.2); border-color: #b8905a; }
@@ -497,8 +498,8 @@
                 </div>
                 <div class="card-quote-author">— Le papa</div>
                 <div class="card-separator-light"></div>
-                <a href="https://docs.google.com/forms/d/e/1FAIpQLSeop-G-LmZlAE-TPkpSYYy0IdiliJNz6jJeunALgJKpF2KjTg/viewform?usp=dialog" class="card-btn">✉ Je souhaite recevoir mon faire-part papier</a>
-                <a href="https://www.minipouce.fr/solinele-bot" class="card-btn">🎁 Accéder à la liste de naissance</a>
+                <a href="https://docs.google.com/forms/d/e/1FAIpQLSeop-G-LmZlAE-TPkpSYYy0IdiliJNz6jJeunALgJKpF2KjTg/viewform?usp=dialog" target="_blank" rel="noopener noreferrer" class="card-btn">✉ Je souhaite recevoir mon faire-part papier</a>
+                <a href="https://www.minipouce.fr/solinele-bot" target="_blank" rel="noopener noreferrer" class="card-btn">🎁 Accéder à la liste de naissance</a>
                 <div class="flip-hint">Cliquez sur la carte pour la retourner</div>
             </div>
 
@@ -533,23 +534,15 @@
         }, 900);
     }
 
-    /* Gestion tactile manuelle pour éviter le double déclenchement iOS */
     let envTouchMoved = false;
-    envelopeWrapper.addEventListener('touchstart', (e) => {
-        envTouchMoved = false;
-    }, { passive: true });
-
-    envelopeWrapper.addEventListener('touchmove', () => {
-        envTouchMoved = true;
-    }, { passive: true });
-
+    envelopeWrapper.addEventListener('touchstart', () => { envTouchMoved = false; }, { passive: true });
+    envelopeWrapper.addEventListener('touchmove',  () => { envTouchMoved = true;  }, { passive: true });
     envelopeWrapper.addEventListener('touchend', (e) => {
         if (!envTouchMoved) {
-            e.preventDefault(); // empêche le click fantôme qui suivrait
+            e.preventDefault();
             openEnvelope();
         }
     }, { passive: false });
-
     envelopeWrapper.addEventListener('click', openEnvelope);
 
     /* ─── Fermer ─── */
@@ -584,12 +577,9 @@
 
     /* ─── Flip carte ─── */
     let cardTouchMoved = false;
-    let touchStartX = 0, touchStartY = 0;
 
     card.addEventListener('touchstart', (e) => {
         cardTouchMoved = false;
-        touchStartX = e.touches[0].clientX;
-        touchStartY = e.touches[0].clientY;
     }, { passive: true });
 
     card.addEventListener('touchmove', () => {
@@ -598,12 +588,15 @@
 
     card.addEventListener('touchend', (e) => {
         if (!cardTouchMoved) {
+            // Si le tap est sur un lien, laisser le comportement natif
+            if (e.target.closest('a')) return;
             e.preventDefault();
             card.classList.toggle('flipped');
         }
     }, { passive: false });
 
-    card.addEventListener('click', () => {
+    card.addEventListener('click', (e) => {
+        if (e.target.closest('a')) return;
         card.classList.toggle('flipped');
     });
 
